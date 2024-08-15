@@ -18,10 +18,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import static oshi.driver.windows.perfmon.PerfmonConstants.PROCESSOR_INFORMATION;
+import static oshi.driver.windows.perfmon.PerfmonConstants.WIN32_PERF_RAW_DATA_COUNTERS_PROCESSOR_INFORMATION_WHERE_NOT_NAME_LIKE_TOTAL;
+
+import com.sun.jna.Platform;
+
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import oshi.driver.windows.perfmon.ProcessorInformation.ProcessorTickCountProperty;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.CentralProcessor.PhysicalProcessor;
 import oshi.hardware.CentralProcessor.ProcessorCache;
@@ -53,6 +59,8 @@ import oshi.software.os.OperatingSystem.ProcessFiltering;
 import oshi.software.os.OperatingSystem.ProcessSorting;
 import oshi.util.FormatUtil;
 import oshi.util.Util;
+import oshi.util.platform.windows.PerfCounterWildcardQuery;
+import oshi.util.tuples.Pair;
 
 /**
  * A demonstration of access to many of OSHI's capabilities
@@ -76,7 +84,8 @@ public class SystemInfoTest { // NOSONAR squid:S5786
     /**
      * The main method, demonstrating use of classes.
      *
-     * @param args the arguments (unused)
+     * @param args
+     *            the arguments (unused)
      */
     public static void main(String[] args) {
 
@@ -87,6 +96,23 @@ public class SystemInfoTest { // NOSONAR squid:S5786
         OperatingSystem os = si.getOperatingSystem();
 
         printOperatingSystem(os);
+
+        if (Platform.isWindows()) {
+            Pair<List<String>, Map<ProcessorTickCountProperty, List<Long>>> query = PerfCounterWildcardQuery
+                    .queryInstancesAndValues(ProcessorTickCountProperty.class, PROCESSOR_INFORMATION,
+                            WIN32_PERF_RAW_DATA_COUNTERS_PROCESSOR_INFORMATION_WHERE_NOT_NAME_LIKE_TOTAL);
+            logger.info("Instances:");
+            for (String pair : query.getA()) {
+                logger.info(pair);
+            }
+            logger.info("Values:");
+            for (Entry<ProcessorTickCountProperty, List<Long>> e : query.getB().entrySet()) {
+                logger.info(e.getKey().toString());
+                for (Long el : e.getValue()) {
+                    logger.info("" + el);
+                }
+            }
+        }
 
         logger.info("Checking computer system...");
         printComputerSystem(hal.getComputerSystem());
