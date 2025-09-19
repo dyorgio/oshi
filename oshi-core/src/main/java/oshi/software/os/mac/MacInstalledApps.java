@@ -7,6 +7,7 @@ package oshi.software.os.mac;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,7 +77,7 @@ public final class MacInstalledApps {
                         if (!Constants.UNKNOWN.equals(location)) {
                             File appPlistFile = new File(location, "/Contents/Info.plist");
                             if (appPlistFile.exists()) {
-                                if ("bplist00".equals(new String(readFirstBytes(appPlistFile)))) {
+                                if ("bplist00".equals(new String(readFirstBytes(appPlistFile), StandardCharsets.UTF_8))) {
                                     // convert binary plist to xml
                                     output = ExecutingCommand.runNative(new String[]{"plutil", "-convert", "xml1", "-o", "-", appPlistFile.getAbsolutePath()});
                                 } else {
